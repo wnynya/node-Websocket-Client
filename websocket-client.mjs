@@ -77,6 +77,7 @@ class WebSocketClient extends EventEmitter {
 
     this.connection.on('close', (code) => {
       this.connected = false;
+      this.closed = true;
       this.clearPingInterval();
       this.setReconnectInterval();
       delete this.connection;
