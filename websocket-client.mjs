@@ -18,6 +18,9 @@ class WebSocketClient extends EventEmitter {
 
     this.pingInterval = null;
     this.setPingInterval = () => {
+      if (this.pingInterval) {
+        return;
+      }
       this.pingInterval = setInterval(() => {
         if (this.connection && this.connected) {
           this.connection.ping();
@@ -30,10 +33,11 @@ class WebSocketClient extends EventEmitter {
 
     this.reconnectInterval = null;
     this.setReconnectInterval = () => {
+      if (this.reconnectInterval) {
+        return;
+      }
       this.reconnectInterval = setInterval(() => {
-        if (this.options.autoReconnect && !this.connected && this.closed) {
-          this.open();
-        }
+        this.open();
       }, 1000 * 2);
     };
     this.clearReconnectInterval = () => {
@@ -58,7 +62,9 @@ class WebSocketClient extends EventEmitter {
   addEventListener() {
     this.connection.on('open', () => {
       this.connected = true;
-      this.clearReconnectInterval();
+      if (this.options.autoReconnect) {
+        this.clearReconnectInterval();
+      }
       this.setPingInterval();
       this.emit('open');
     });
@@ -79,7 +85,9 @@ class WebSocketClient extends EventEmitter {
       this.connected = false;
       this.closed = true;
       this.clearPingInterval();
-      this.setReconnectInterval();
+      if (this.options.autoReconnect) {
+        this.setReconnectInterval();
+      }
       delete this.connection;
       this.emit('close', code);
     });
