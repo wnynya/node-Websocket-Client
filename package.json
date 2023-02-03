@@ -1,6 +1,6 @@
 {
   "name": "@wnynya/websocket-client",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "@wnynya/websocket-client",
   "author": "Wany <sung@wany.io> (https://wany.io)",
   "main": "websocket-client.mjs",

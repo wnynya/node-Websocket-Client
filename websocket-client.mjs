@@ -31,7 +31,7 @@ class WebSocketClient extends EventEmitter {
     this.reconnectInterval = null;
     this.setReconnectInterval = () => {
       this.reconnectInterval = setInterval(() => {
-        if (this.options.autoReconnect && !this.connected && !this.closed) {
+        if (this.options.autoReconnect && !this.connected && this.closed) {
           this.open();
         }
       }, 1000 * 2);
