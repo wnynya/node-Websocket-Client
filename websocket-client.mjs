@@ -76,7 +76,7 @@ class WebSocketClient extends EventEmitter {
     if (!this.connection) {
       return;
     }
-    if (!this.connected) {
+    if (!this.opened) {
       return;
     }
     if (typeof message == 'object') {
