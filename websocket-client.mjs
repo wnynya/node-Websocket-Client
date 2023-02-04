@@ -13,65 +13,37 @@ class WebSocketClient extends EventEmitter {
     this.options = options;
 
     this.connection = null;
-    this.connected = false;
-    this.closed = false;
+    this.opened = false;
 
-    this.pingInterval = null;
-    this.setPingInterval = () => {
-      if (this.pingInterval) {
-        return;
+    this.pingInterval = setInterval(() => {
+      if (this.connection && this.opened) {
+        this.connection.ping();
       }
-      this.pingInterval = setInterval(() => {
-        if (this.connection && this.connected) {
-          this.connection.ping();
-        }
-      }, 1000 * 10);
-    };
-    this.clearPingInterval = () => {
-      clearInterval(this.pingInterval);
-    };
-
-    this.reconnectInterval = null;
-    this.setReconnectInterval = () => {
-      if (this.reconnectInterval) {
-        return;
-      }
-      this.reconnectInterval = setInterval(() => {
-        this.open();
-      }, 1000 * 2);
-    };
-    this.clearReconnectInterval = () => {
-      clearInterval(this.reconnectInterval);
-    };
+    }, 1000 * 10);
   }
 
-  open() {
-    if (this.connection || this.connected) {
+  async open() {
+    if (this.opened) {
       return;
     }
-    this.closed = false;
 
     try {
       this.connection = new WebSocket(this.uri);
-      this.addEventListener();
     } catch (error) {
       throw error;
     }
-  }
 
-  addEventListener() {
     this.connection.on('open', () => {
-      this.connected = true;
-      if (this.options.autoReconnect) {
-        this.clearReconnectInterval();
-      }
-      this.setPingInterval();
+      this.opened = true;
+
       this.emit('open');
     });
 
     this.connection.on('message', (buffer) => {
       this.emit('message', buffer);
+
       const text = buffer.toString();
+
       try {
         const object = JSON.parse(text);
         this.emit('json', this, object.event, object.data, object.message);
@@ -82,13 +54,12 @@ class WebSocketClient extends EventEmitter {
     });
 
     this.connection.on('close', (code) => {
-      this.connected = false;
-      this.closed = true;
-      this.clearPingInterval();
+      this.opened = false;
+
       if (this.options.autoReconnect) {
-        this.setReconnectInterval();
+        this.open();
       }
-      delete this.connection;
+
       this.emit('close', code);
     });
 
@@ -98,7 +69,6 @@ class WebSocketClient extends EventEmitter {
   }
 
   close() {
-    this.closed = true;
     this.connection ? this.connection.close() : null;
   }
 
